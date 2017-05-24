@@ -1,5 +1,9 @@
 package com.example.marc2102.mapsapp;
 
+import android.content.Context;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 
@@ -39,8 +43,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
 
         // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        LatLng sanDiego = new LatLng(33, -117);
+        mMap.addMarker(new MarkerOptions().position(sanDiego).title("Born Here"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(sanDiego));
+
+        
     }
 }
