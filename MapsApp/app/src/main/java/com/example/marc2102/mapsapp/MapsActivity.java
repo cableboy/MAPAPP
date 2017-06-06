@@ -16,6 +16,7 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.gms.location.LocationListener;
@@ -187,7 +188,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     break;
                 case LocationProvider.OUT_OF_SERVICE:
 
-                    if (ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    if (ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                            && ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                         // TODO: Consider calling
                         //    ActivityCompat#requestPermissions
                         // here to request the missing permissions, and then overriding
@@ -263,13 +265,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     };
 
 
-
-
-
-
     public void dropAmarker(String provider) {
 
         LatLng userLocation = null;
+
 
         if (locationManager != null) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
@@ -286,12 +285,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             myLocation = locationManager.getLastKnownLocation(provider);
         }
 
-        if(myLocation == null)
-        {
-            //display a message is log.d and/or Toast
-            Log.d("MyMaps", "what location?");
-        }
-        else
+        if(myLocation != null)
         {
             userLocation = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
 
@@ -299,14 +293,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             CameraUpdate update = CameraUpdateFactory.newLatLngZoom(userLocation, MY_LOC_ZOOM_FACTOR);
 
             //Add a shape for you marker
-            Circle circle = mMap.addCircle(new CircleOptions()
-                    .center(userLocation)
-                    .radius(1)
-                    .strokeColor(Color.RED)
-                    .strokeWidth(2)
-                    .fillColor(Color.RED));
+            if(provider.equals(LocationManager.GPS_PROVIDER)) {
+                mMap.addCircle(new CircleOptions().center(userLocation).radius(2).strokeColor(Color.RED).strokeWidth(2).fillColor(Color.BLUE));
+
+            }
+            else {
+                mMap.addCircle(new CircleOptions().center(userLocation).radius(2).strokeColor(Color.MAGENTA).strokeWidth(2).fillColor(Color.GREEN));
+
+            }
 
             mMap.animateCamera(update);
+        }
+        else
+        {
+            {
+                //display a message is log.d and/or Toast
+                Log.d("MyMaps", "what location?");
+            }
         }
     }
 
@@ -322,6 +325,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         {
             return;
         }
+    }
+
+
+    public void clearAll (View view)
+    {
+        mMap.clear();
+    }
+
+
+    public void searchPOI(View view)
+    {
+
     }
 }
 
