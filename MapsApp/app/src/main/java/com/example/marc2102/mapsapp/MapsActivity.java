@@ -164,7 +164,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             Toast.makeText(MapsActivity.this, "GPS Location has changed", Toast.LENGTH_SHORT).show();
 
             //drop a marker on the map (create a method called dropAmarker)
-            dropAmarker(locationManager.GPS_PROVIDER);
+            dropMarker(locationManager.GPS_PROVIDER);
 
             //relaunch the request for network location updates
             isNetworkEnabled = false;
@@ -238,7 +238,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
             //drop a marker on the map (create a method called dropAmarker)
-            dropAmarker(LocationManager.NETWORK_PROVIDER);
+            dropMarker(LocationManager.NETWORK_PROVIDER);
 
 
 
@@ -265,51 +265,49 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     };
 
 
-    public void dropAmarker(String provider) {
-
+    public void dropMarker(String provider) {
         LatLng userLocation = null;
-
-
-        if (locationManager != null) {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                    && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
-                return;
-            }
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.d("MyMaps", "Failed coarse permission check");
+            Log.d("MyMaps", Integer.toString(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)));
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 2);
+        }
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.d("MyMaps", "Failed fine permission check");
+            Log.d("MyMaps", Integer.toString(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)));
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 2);
+        }
+        myLocation = null;
+        if(locationManager != null) {
             myLocation = locationManager.getLastKnownLocation(provider);
         }
-
-        if(myLocation != null)
-        {
-            userLocation = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
-
-            ////display a message is log.d and/or Toast
+        if(myLocation != null) {
+            userLocation = new LatLng(myLocation.getLatitude(),myLocation.getLongitude());
             CameraUpdate update = CameraUpdateFactory.newLatLngZoom(userLocation, MY_LOC_ZOOM_FACTOR);
-
-            //Add a shape for you marker
-            if(provider.equals(LocationManager.GPS_PROVIDER)) {
-                mMap.addCircle(new CircleOptions().center(userLocation).radius(2).strokeColor(Color.RED).strokeWidth(2).fillColor(Color.BLUE));
+            if(provider.equals(GPS_PROVIDER)) {
+                mMap.addCircle(new CircleOptions()
+                        .center(userLocation)
+                        .radius(2)
+                        .strokeColor(Color.RED)
+                        .strokeWidth(2)
+                        .fillColor(Color.BLUE));
 
             }
             else {
-                mMap.addCircle(new CircleOptions().center(userLocation).radius(2).strokeColor(Color.MAGENTA).strokeWidth(2).fillColor(Color.GREEN));
+                mMap.addCircle(new CircleOptions()
+                        .center(userLocation)
+                        .radius(2)
+                        .strokeColor(Color.MAGENTA)
+                        .strokeWidth(2)
+                        .fillColor(Color.GREEN));
 
             }
-
             mMap.animateCamera(update);
+
         }
-        else
-        {
-            {
-                //display a message is log.d and/or Toast
-                Log.d("MyMaps", "what location?");
-            }
+        else {
+            Log.d("MyMaps", "Dead");
+            Toast.makeText(this, "Not good.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -336,7 +334,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void searchPOI(View view)
     {
-
+               
     }
 }
 
