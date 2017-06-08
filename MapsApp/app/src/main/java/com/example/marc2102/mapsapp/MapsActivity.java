@@ -5,7 +5,9 @@ import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Address;
 import android.location.Criteria;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
 import android.location.LocationProvider;
@@ -28,7 +30,12 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
 
 import static android.location.LocationManager.GPS_PROVIDER;
 import static android.location.LocationManager.NETWORK_PROVIDER;
@@ -46,11 +53,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Location myLocation;
     private static final float MY_LOC_ZOOM_FACTOR = 17.0f;
     private boolean isTracked = false;
+    EditText Search;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+        Search = (EditText) findViewById(R.id.editText_search);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -334,9 +343,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void searchPOI(View view)
     {
-               
+
+        Log.d("search1",Search.getText().toString());
+        Log.d("search1", "button works");
+
+        Geocoder POI = new Geocoder(this, Locale.getDefault());
+
+        mMap.clear();
+        try {
+            List<android.location.Address>life = POI.getFromLocationName(Search.getText().toString(),10);
+
+            for(android.location.Address locations : life)
+            {
+                LatLng SearchLocation = new LatLng(locations.getLatitude(),locations.getLongitude());
+                Marker marker = mMap.addMarker(new MarkerOptions().position(SearchLocation).title(Search.getText().toString()));
+            }
+
+
+
+        }catch(IOException e) {
+             Log.d("MyMaps","problem with the search function");
+        }
+
     }
 }
+
 
 
 
