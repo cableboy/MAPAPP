@@ -21,7 +21,10 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.places.Place;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -53,6 +56,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Location myLocation;
     private static final float MY_LOC_ZOOM_FACTOR = 17.0f;
     private boolean isTracked = false;
+
+
     EditText Search;
 
     @Override
@@ -356,16 +361,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             for(android.location.Address locations : life)
             {
                 LatLng SearchLocation = new LatLng(locations.getLatitude(),locations.getLongitude());
-                Marker marker = mMap.addMarker(new MarkerOptions().position(SearchLocation).title(Search.getText().toString()));
+                Marker marker =     mMap.addMarker(new MarkerOptions().position(SearchLocation).title(Search.getText().toString()));
             }
-
-
 
         }catch(IOException e) {
              Log.d("MyMaps","problem with the search function");
         }
 
     }
+
 }
 
 
