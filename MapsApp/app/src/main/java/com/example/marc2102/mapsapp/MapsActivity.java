@@ -18,6 +18,7 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -37,6 +38,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -56,6 +58,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Location myLocation;
     private static final float MY_LOC_ZOOM_FACTOR = 17.0f;
     private boolean isTracked = false;
+    Button searchButton;
 
 
     EditText Search;
@@ -64,7 +67,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        Search = (EditText) findViewById(R.id.editText_search);
+        Search = (EditText) findViewById(R.id.editText_searcher);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -184,7 +187,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             isNetworkEnabled = false;
 
 
-
         }
 
         @Override
@@ -235,10 +237,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         @Override
-        public void onProviderEnabled(String provider) {}
+        public void onProviderEnabled(String provider) {
+        }
 
         @Override
-        public void onProviderDisabled(String provider) {}
+        public void onProviderDisabled(String provider) {
+        }
     };
 
 
@@ -253,7 +257,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             //drop a marker on the map (create a method called dropAmarker)
             dropMarker(LocationManager.NETWORK_PROVIDER);
-
 
 
             //relaunch the request for network location updates
@@ -272,10 +275,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         @Override
-        public void onProviderEnabled(String provider) {}
+        public void onProviderEnabled(String provider) {
+        }
 
         @Override
-        public void onProviderDisabled(String provider) {}
+        public void onProviderDisabled(String provider) {
+        }
     };
 
 
@@ -292,13 +297,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 2);
         }
         myLocation = null;
-        if(locationManager != null) {
+        if (locationManager != null) {
             myLocation = locationManager.getLastKnownLocation(provider);
         }
-        if(myLocation != null) {
-            userLocation = new LatLng(myLocation.getLatitude(),myLocation.getLongitude());
+        if (myLocation != null) {
+            userLocation = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
             CameraUpdate update = CameraUpdateFactory.newLatLngZoom(userLocation, MY_LOC_ZOOM_FACTOR);
-            if(provider.equals(GPS_PROVIDER)) {
+            if (provider.equals(GPS_PROVIDER)) {
                 mMap.addCircle(new CircleOptions()
                         .center(userLocation)
                         .radius(2)
@@ -306,8 +311,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         .strokeWidth(2)
                         .fillColor(Color.BLUE));
 
-            }
-            else {
+            } else {
                 mMap.addCircle(new CircleOptions()
                         .center(userLocation)
                         .radius(2)
@@ -318,59 +322,71 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
             mMap.animateCamera(update);
 
-        }
-        else {
+        } else {
             Log.d("MyMaps", "Dead");
             Toast.makeText(this, "Not good.", Toast.LENGTH_SHORT).show();
         }
     }
 
-    public void trackMe(View view)
-    {
+    public void trackMe(View view) {
         isTracked = true;
-        if(isTracked == true)
-        {
+        if (isTracked == true) {
             getLocation();
             isTracked = false;
         }
-        if(isTracked == false)
-        {
+        if (isTracked == false) {
             return;
         }
     }
 
 
-    public void clearAll (View view)
-    {
+    public void clearAll(View view) {
         mMap.clear();
     }
 
 
-    public void searchPOI(View view)
-    {
-
-        Log.d("search1",Search.getText().toString());
-        Log.d("search1", "button works");
-
-        Geocoder POI = new Geocoder(this, Locale.getDefault());
-
+    public void searchPOI(View view) {
         mMap.clear();
-        try {
-            List<android.location.Address>life = POI.getFromLocationName(Search.getText().toString(),10);
+        Search = (EditText) findViewById(R.id.editText_searcher);
+        searchButton = (Button) findViewById(R.id.button_3);
 
-            for(android.location.Address locations : life)
-            {
-                LatLng SearchLocation = new LatLng(locations.getLatitude(),locations.getLongitude());
-                Marker marker =     mMap.addMarker(new MarkerOptions().position(SearchLocation).title(Search.getText().toString()));
+        String location = Search.getText().toString();
+        List<Address> addressList = new ArrayList<>();
+        List<Address> distanceList = new ArrayList<>();
+
+        //checks to see if nothing is entered in the search so the app doesn't crash
+        if (location.equals("")) {
+            Toast.makeText(MapsActivity.this, "No Search Entered", Toast.LENGTH_SHORT).show();
+            return;
+        } else if (myLocation == null) {
+            //if there is no location within the radius and the app needs a fallback
+            Toast.makeText(MapsActivity.this, "No known location; please press 'Track Me' then try searching again", Toast.LENGTH_SHORT).show();
+            return;
+        } else if (location != null || !location.equals("")) {
+            Log.d("MyMaps", "search feature started");
+            Geocoder geocoder = new Geocoder(this);
+
+
+            try {
+                addressList = geocoder.getFromLocationName(location, 1000, (myLocation.getLatitude() - (5.0 / 60)), (myLocation.getLongitude() - (5.0 / 60)), (myLocation.getLatitude() + (5.0 / 60)), (myLocation.getLongitude() + (5.0 / 60)));
+
+                Log.d("MyMaps", "made a max 100 entry search result");
+            } catch (IOException e) {
+                e.printStackTrace();
             }
 
-        }catch(IOException e) {
-             Log.d("MyMaps","problem with the search function");
+            for (int i = 0; i < addressList.size(); i++) {
+                Address address = addressList.get(i);
+                LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
+                mMap.addMarker(new MarkerOptions().position(latLng).title("Search Results"));
+                mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+            }
         }
-
     }
-
 }
+
+
+
 
 
 
