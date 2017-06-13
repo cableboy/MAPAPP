@@ -48,16 +48,17 @@ import static android.location.LocationManager.NETWORK_PROVIDER;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
-    boolean type = true;
     private LocationManager locationManager;
     private boolean isGPSEnabled = false;
     private boolean isNetworkEnabled = false;
     private boolean canGetLocation = false;
-    private static final long MIN_TIME_BW_UPDATES = 1000 * 15;
+    private static final long MIN_TIME_BW_UPDATES = 1000*15;
     private static final float MIN_DISTANCE_CHANGE_FOR_UPDATES = 5.0f;
-    private Location myLocation;
-    private static final float MY_LOC_ZOOM_FACTOR = 17.0f;
+    private Location myLocation = null;
+    private LatLng userLocation = null;
+    private static final float MY_LOCATION_ZOOM_FACTORY = 17;
     private boolean isTracked = false;
+    boolean type = true;
     Button searchButton;
 
 
@@ -99,7 +100,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        mMap.setMyLocationEnabled(true);
+        //mMap.setMyLocationEnabled(true);
 
     }
 
@@ -112,6 +113,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
             type = true;
         }
+    }
+
+    public void stoptracking() {
+
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        locationManager.removeUpdates(locationListenerGps);
+        locationManager.removeUpdates(locationListenerNetwork);
+        locationManager = null;
+
     }
 
 
@@ -175,18 +189,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     android.location.LocationListener locationListenerGps = new android.location.LocationListener() {
         @Override
         public void onLocationChanged(Location location) {
+            if (isTracked) {
+                //output message in Log.d and Toast
+                Log.d("MyMaps", "GPS Location has changed");
+                Toast.makeText(MapsActivity.this, "GPS Location has changed", Toast.LENGTH_SHORT).show();
 
-            //output message in Log.d and Toast
-            Log.d("MyMaps", "GPS Location has changed");
-            Toast.makeText(MapsActivity.this, "GPS Location has changed", Toast.LENGTH_SHORT).show();
+                //drop a marker on the map (create a method called dropAmarker)
+                dropMarker(locationManager.GPS_PROVIDER);
 
-            //drop a marker on the map (create a method called dropAmarker)
-            dropMarker(locationManager.GPS_PROVIDER);
+                //relaunch the request for network location updates
+                try {
+                    locationManager.removeUpdates(locationListenerNetwork);
+                } catch (SecurityException e) {
 
-            //relaunch the request for network location updates
-            isNetworkEnabled = false;
+                }
 
 
+            }
         }
 
         @Override
@@ -260,7 +279,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
             //relaunch the request for network location updates
-            isNetworkEnabled = true;
+            try{
+                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, locationListenerNetwork);
+            }
+            catch(SecurityException e) {
+
+            }
+
 
         }
 
@@ -285,48 +310,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     public void dropMarker(String provider) {
+
+
         LatLng userLocation = null;
+
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Log.d("MyMaps", "Failed coarse permission check");
-            Log.d("MyMaps", Integer.toString(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)));
+            Log.d("MapAppBenWeltsch", "Failed coarse permission check");
+            Log.d("MapAppBenWeltsch", Integer.toString(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)));
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, 2);
         }
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            Log.d("MyMaps", "Failed fine permission check");
-            Log.d("MyMaps", Integer.toString(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)));
+            Log.d("MapAppBenWeltsch", "Failed fine permission check");
+            Log.d("MapAppBenWeltsch", Integer.toString(ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)));
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 2);
         }
         myLocation = null;
-        if (locationManager != null) {
+        if(locationManager != null) {
             myLocation = locationManager.getLastKnownLocation(provider);
         }
-        if (myLocation != null) {
-            userLocation = new LatLng(myLocation.getLatitude(), myLocation.getLongitude());
-            CameraUpdate update = CameraUpdateFactory.newLatLngZoom(userLocation, MY_LOC_ZOOM_FACTOR);
-            if (provider.equals(GPS_PROVIDER)) {
-                mMap.addCircle(new CircleOptions()
-                        .center(userLocation)
-                        .radius(2)
-                        .strokeColor(Color.RED)
-                        .strokeWidth(2)
-                        .fillColor(Color.BLUE));
-
-            } else {
-                mMap.addCircle(new CircleOptions()
-                        .center(userLocation)
-                        .radius(2)
-                        .strokeColor(Color.MAGENTA)
-                        .strokeWidth(2)
-                        .fillColor(Color.GREEN));
-
+        if(myLocation != null) {
+            userLocation = new LatLng(myLocation.getLatitude(),myLocation.getLongitude());
+            CameraUpdate update = CameraUpdateFactory.newLatLngZoom(userLocation, MY_LOCATION_ZOOM_FACTORY);
+            if(provider.equals(GPS_PROVIDER)) {
+                mMap.addCircle(new CircleOptions().center(userLocation).radius(2).strokeColor(Color.BLUE).strokeWidth(2).fillColor(Color.BLUE));
+                //mMap.addMarker(new MarkerOptions().position(userLocation).title("Last Marked Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+            }
+            else {
+                mMap.addCircle(new CircleOptions().center(userLocation).radius(2).strokeColor(Color.MAGENTA).strokeWidth(2).fillColor(Color.GREEN));
+                //mMap.addMarker(new MarkerOptions().position(userLocation).title("Last Marked Location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
             }
             mMap.animateCamera(update);
-
-        } else {
-            Log.d("MyMaps", "Dead");
-            Toast.makeText(this, "Not good.", Toast.LENGTH_SHORT).show();
+            //mMap.moveCamera(CameraUpdateFactory.newLatLng(userLocation));
         }
+
     }
+
 
     public void trackMe(View view) {
         isTracked = true;
@@ -383,7 +401,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         }
     }
-}
+
+    }
 
 
 
