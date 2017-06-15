@@ -135,58 +135,56 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void tracking() {
         try {
+            Toast.makeText(this, "ENABLING TRACKING", Toast.LENGTH_SHORT).show();
             locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
-
-            //get GPS status
-            isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+            isGPSEnabled = locationManager.isProviderEnabled(GPS_PROVIDER);
             if (isGPSEnabled)
-                Log.d("MyMaps", "getLocation: GPS enabled");
-            //get network status
-            isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+                Log.d("MyMaps", "getLocation: GPS is enabled");
+
+            isNetworkEnabled = locationManager.isProviderEnabled(NETWORK_PROVIDER);
             if (isNetworkEnabled)
-                Log.d("MyMaps", "getLocation: Network enabled");
+                Log.d("MyMaps", "getLocation: Network is enabled");
 
             if (!isGPSEnabled && !isNetworkEnabled) {
-                Log.d("MyMaps", "getLocation: No provider enabled");
+                Log.d("MyMapsh", "getLocation: No Provider is Enabled");
+                return;
             } else {
-                this.canGetLocation = true;
-
-                if (isNetworkEnabled) {
-                    Log.d("MyMaps", "getLocation: Network enabled, requesting location updates");
-
-
-                    if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
-                            != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                        // TODO: Consider calling
-                        //    ActivityCompat#requestPermissions
-                        // here to request the missing permissions, and then overriding
-                        //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                        //                                          int[] grantResults)
-                        // to handle the case where the user grants the permission. See the documentation
-                        // for ActivityCompat#requestPermissions for more details.
-                        return;
-                    }
-                    locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, locationListenerNetwork);
-
-
-                    Log.d("MyMaps", "getLocation: Network update request successful");
-                    Toast.makeText(this, "Using Network", Toast.LENGTH_SHORT);
-                }
+                isTracked = true;
                 if (isGPSEnabled) {
-                    Log.d("MyMaps", "getLocation: GPS enabled, requesting location updates");
-                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME_BW_UPDATES, MIN_DISTANCE_CHANGE_FOR_UPDATES, locationListenerGps);
+                    Log.d("MyMaps", "getLocation: GPS ENABLED; REQUESTION LOCATION UPDATES");
+                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                        Log.d("MyMaps", "Failed coarse permission check");
+                        Log.d("MyMaps", Integer.toString(ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION)));
+                        ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_COARSE_LOCATION}, 2);
+                    }
+                    if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                        Log.d("MyMaps", "Failed fine permission check");
+                        Log.d("MyMaps", Integer.toString(ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)));
+                        ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 2);
+                    }
+                    locationManager.requestLocationUpdates(GPS_PROVIDER,
+                            MIN_TIME_BW_UPDATES,
+                            MIN_DISTANCE_CHANGE_FOR_UPDATES,
+                            locationListenerGps);
+                    Log.d("MyMaps", "getLocation: Network GPS update request successful");
+                    Toast.makeText(this, "Using GPS", Toast.LENGTH_SHORT);
 
-                    Log.d("MyMaps", "getLocation: GPS update request successful");
+                }
+                if (isNetworkEnabled) {
+                    Log.d("MyMaps", "getLocation: NETWORK ENABLED; REQUESTION LOCATION UPDATES");
+                    locationManager.requestLocationUpdates(NETWORK_PROVIDER,
+                            MIN_TIME_BW_UPDATES,
+                            MIN_DISTANCE_CHANGE_FOR_UPDATES,
+                            locationListenerNetwork);
+                    Log.d("MyMaps", "getLocation: Network GPS update request suCCESsFULL");
                     Toast.makeText(this, "Using GPS", Toast.LENGTH_SHORT);
                 }
             }
-
         } catch (Exception e) {
-            Log.d("MyMaps", "Exception in getLocation");
+            Log.d("MyMaps", "uh oh");
             e.printStackTrace();
         }
-
     }
 
 
@@ -208,9 +206,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 } catch (SecurityException e) {
 
                 }
+
             }
         }
-
 
         @Override
         public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -229,14 +227,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     if (ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                             && ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                        // TODO: Consider calling
-                        //    ActivityCompat#requestPermissions
-                        // here to request the missing permissions, and then overriding
-                        //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                        //                                          int[] grantResults)
-                        // to handle the case where the user grants the permission. See the documentation
-                        // for ActivityCompat#requestPermissions for more details.
-                        return;
+                            return;
                     }
                     locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
                             MIN_TIME_BW_UPDATES,
